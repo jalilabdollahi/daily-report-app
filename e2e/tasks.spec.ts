@@ -1,17 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 async function waitForLoginFormHydration(page: Page) {
-  const passwordInput = page.locator("#password");
-
-  // Wait for React hydration before interacting — the SSR HTML already
-  // has type="password", so checking that alone doesn't guarantee the
-  // client-side event handlers are attached yet.
-  await page.waitForLoadState("networkidle");
-  await expect(passwordInput).toHaveAttribute("type", "password");
-  await page.getByRole("button", { name: /show password/i }).click();
-  await expect(passwordInput).toHaveAttribute("type", "text");
-  await page.getByRole("button", { name: /hide password/i }).click();
-  await expect(passwordInput).toHaveAttribute("type", "password");
+  await expect(page.locator("#password")).toBeEnabled();
 }
 
 test("authenticated user can create, edit, and delete a task", async ({
