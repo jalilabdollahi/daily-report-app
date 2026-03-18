@@ -1,8 +1,7 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ${APP_IMAGE:?Set APP_IMAGE to your GHCR image, e.g. ghcr.io/<owner>/daily-report-app:latest}
+    pull_policy: always
     env_file:
       - .env
     environment:

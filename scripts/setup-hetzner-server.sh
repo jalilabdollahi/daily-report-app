@@ -115,5 +115,5 @@ echo
 echo "Next steps:"
 echo "1. Reconnect your SSH session so docker group membership refreshes."
 echo "2. Clone the repo into /var/www/daily-report-app"
-echo "3. Copy .env.production to .env and fill in real values"
-echo "4. Run: docker compose up -d --build"
+echo "3. Copy .env.production to .env and fill in real values, including APP_IMAGE"
+echo "4. Run: docker compose pull && docker compose up -d"

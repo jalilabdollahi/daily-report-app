@@ -37,6 +37,7 @@ jobs:
           --health-retries=5
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/daily_reports_test
+      AUTH_URL: http://127.0.0.1:3000
       NEXTAUTH_SECRET: test-secret
       NEXTAUTH_URL: http://127.0.0.1:3000
     steps:
@@ -73,6 +74,7 @@ jobs:
           --health-retries=5
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/daily_reports_test
+      AUTH_URL: http://127.0.0.1:3000
       NEXTAUTH_SECRET: test-secret
       NEXTAUTH_URL: http://127.0.0.1:3000
       PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
@@ -85,7 +87,7 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps chromium webkit
       - run: npm run db:generate
       - run: npx prisma db push
       - run: DATABASE_URL='postgresql://postgres:postgres@localhost:5432/daily_reports_test' npm run db:seed

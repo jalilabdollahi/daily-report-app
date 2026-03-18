@@ -20,6 +20,13 @@ RUN npm run build
 
 FROM node:20-alpine AS runner
 WORKDIR /app
+ARG BUILD_DATE="unknown"
+ARG GIT_SHA="unknown"
+ARG REPOSITORY_URL="https://github.com/unknown/unknown"
+LABEL org.opencontainers.image.created=$BUILD_DATE \
+      org.opencontainers.image.revision=$GIT_SHA \
+      org.opencontainers.image.source=$REPOSITORY_URL \
+      org.opencontainers.image.title="daily-report-app"
 ENV NODE_ENV=production
 ENV PORT=80
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -48,6 +55,6 @@ USER appuser
 EXPOSE 80
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-  CMD wget -qO- http://127.0.0.1:80/api/health || exit 1
+  CMD node -e "fetch('http://127.0.0.1:80/api/health').then((res) => { if (!res.ok) process.exit(1); }).catch(() => process.exit(1))"
 
 CMD ["sh", "./entrypoint.sh"]

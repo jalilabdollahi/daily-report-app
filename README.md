@@ -60,7 +60,7 @@ npm run dev
 Production-like stack:
 
 ```bash
-docker compose up -d
+APP_IMAGE=ghcr.io/<your-github-username>/daily-report-app:latest docker compose up -d
 ```
 
 Development override:
@@ -119,6 +119,8 @@ OpenAPI reference: [docs/api/openapi.yaml](./docs/api/openapi.yaml)
 ## Production Notes
 
 - Use `.env.production` as a template for deployment platforms.
+- Publish the production container to GHCR with the GitHub Actions workflow in `.github/workflows/container-image.yml`.
+- Set `APP_IMAGE=ghcr.io/<your-github-username>/daily-report-app:latest` on servers that should pull the published image.
 - Use `terraform/` to provision AWS RDS, S3 uploads, SSM parameters, and the runtime IAM policy for Amplify-compatible deployments.
 - Set `UPLOAD_PROVIDER=s3` in production so avatars and attachments are stored outside the Amplify runtime filesystem.
 - Export env vars from SSM with `AWS_REGION=us-east-1 npm run env:ssm:export -- /daily-report-app/production`.
