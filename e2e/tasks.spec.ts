@@ -9,8 +9,12 @@ test("authenticated user can create, edit, and delete a task", async ({
   );
 
   await page.goto("/login");
-  await page.getByLabel("Email").fill(process.env.E2E_USER_EMAIL ?? "");
-  await page.getByLabel("Password").fill(process.env.E2E_USER_PASSWORD ?? "");
+  await page
+    .getByLabel("Email address", { exact: true })
+    .fill(process.env.E2E_USER_EMAIL ?? "");
+  await page
+    .getByRole("textbox", { name: "Password", exact: true })
+    .fill(process.env.E2E_USER_PASSWORD ?? "");
   await page.getByRole("button", { name: /sign in/i }).click();
 
   await page.goto("/dashboard/tasks/new");

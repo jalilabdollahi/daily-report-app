@@ -23,7 +23,9 @@ export default defineConfig({
   webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER === "1"
     ? undefined
     : {
-        command: process.env.CI ? "npm run start" : "npm run dev",
+        command: process.env.CI
+          ? "node .next/standalone/server.js"
+          : "npm run dev",
         url: process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000",
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
