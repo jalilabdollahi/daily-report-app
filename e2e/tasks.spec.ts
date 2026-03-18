@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 async function waitForLoginFormHydration(page: Page) {
-  await expect(page.locator("#password")).toBeEnabled();
+  await page.locator("form[data-hydrated]").waitFor({ state: "attached" });
 }
 
 test("authenticated user can create, edit, and delete a task", async ({
