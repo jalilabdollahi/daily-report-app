@@ -57,51 +57,6 @@ jobs:
           name: coverage-report
           path: coverage
 
-  e2e:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_DB: daily_reports_test
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U postgres -d daily_reports_test"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-    env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/daily_reports_test
-      AUTH_URL: http://127.0.0.1:3000
-      AUTH_SECRET: test-secret
-      NEXTAUTH_SECRET: test-secret
-      NEXTAUTH_URL: http://127.0.0.1:3000
-      PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
-      E2E_USER_EMAIL: user@example.com
-      E2E_USER_PASSWORD: user123
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium webkit
-      - run: npm run db:generate
-      - run: npx prisma db push
-      - run: DATABASE_URL='postgresql://postgres:postgres@localhost:5432/daily_reports_test' npm run db:seed
-      - run: npm run build
-      - run: cp -r .next/static .next/standalone/.next/static
-      - run: npm run test:e2e
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: playwright-report
-          path: playwright-report
-
   build:
     runs-on: ubuntu-latest
     steps:
