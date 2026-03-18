@@ -27,7 +27,8 @@
       ]
     },
     "types": [
-      "node"
+      "node",
+      "vitest/globals"
     ],
     "allowJs": true
   },
