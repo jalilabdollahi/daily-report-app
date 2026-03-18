@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2, LogIn } from "lucide-react";
 import { getSession, signIn } from "next-auth/react";
@@ -28,7 +28,6 @@ export function LoginForm({
   notice?: string;
 }) {
   const router = useRouter();
-  const formRef = useRef<HTMLFormElement>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -73,12 +72,8 @@ export function LoginForm({
     });
   });
 
-  useEffect(() => {
-    formRef.current?.setAttribute("data-hydrated", "");
-  }, []);
-
   return (
-    <form ref={formRef} noValidate onSubmit={onSubmit} className="p-6 space-y-5">
+    <form noValidate onSubmit={onSubmit} className="p-6 space-y-5">
       {/* Notice */}
       {notice && (
         <div className="flex items-start gap-2.5 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-primary">

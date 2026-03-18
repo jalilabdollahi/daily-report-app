@@ -1,8 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
-
-async function waitForLoginFormHydration(page: Page) {
-  await page.locator("form[data-hydrated]").waitFor({ state: "attached" });
-}
+import { expect, test } from "@playwright/test";
 
 test("user can register, log in, and log out", async ({ page }) => {
   const email = `auth-e2e-${Date.now()}@example.com`;
@@ -17,7 +13,6 @@ test("user can register, log in, and log out", async ({ page }) => {
   await page.getByRole("button", { name: /create account/i }).click();
 
   await page.goto("/login");
-  await waitForLoginFormHydration(page);
   await page.getByLabel("Email address", { exact: true }).fill(email);
   await page.getByRole("textbox", { name: "Password", exact: true }).fill(
     "Password123!",

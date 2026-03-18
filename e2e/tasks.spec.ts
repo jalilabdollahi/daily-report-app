@@ -1,8 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
-
-async function waitForLoginFormHydration(page: Page) {
-  await page.locator("form[data-hydrated]").waitFor({ state: "attached" });
-}
+import { expect, test } from "@playwright/test";
 
 test("authenticated user can create, edit, and delete a task", async ({
   page,
@@ -13,7 +9,6 @@ test("authenticated user can create, edit, and delete a task", async ({
   );
 
   await page.goto("/login");
-  await waitForLoginFormHydration(page);
   await page
     .getByLabel("Email address", { exact: true })
     .fill(process.env.E2E_USER_EMAIL ?? "");
