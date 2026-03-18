@@ -21,10 +21,12 @@ RUN npm run build
 FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT=80
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+RUN apk add --no-cache libcap && \
+    addgroup -S appgroup && adduser -S appuser -G appgroup && \
+    setcap "cap_net_bind_service=+ep" /usr/local/bin/node
 
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/package-lock.json ./package-lock.json
@@ -43,9 +45,9 @@ RUN chmod +x ./entrypoint.sh && \
     chown -R appuser:appgroup /app
 
 USER appuser
-EXPOSE 3000
+EXPOSE 80
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-  CMD wget -qO- http://127.0.0.1:3000/api/health || exit 1
+  CMD wget -qO- http://127.0.0.1:80/api/health || exit 1
 
 CMD ["sh", "./entrypoint.sh"]
