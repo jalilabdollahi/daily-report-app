@@ -3,7 +3,7 @@ import type { NextAuthConfig } from "next-auth";
 const authConfig = {
   providers: [],
   trustHost: true,
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
   pages: {
     signIn: "/login",
   },
