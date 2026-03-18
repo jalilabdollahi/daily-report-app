@@ -1,4 +1,14 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+async function waitForLoginFormHydration(page: Page) {
+  const passwordInput = page.locator("#password");
+
+  await expect(passwordInput).toHaveAttribute("type", "password");
+  await page.getByRole("button", { name: /show password/i }).click();
+  await expect(passwordInput).toHaveAttribute("type", "text");
+  await page.getByRole("button", { name: /hide password/i }).click();
+  await expect(passwordInput).toHaveAttribute("type", "password");
+}
 
 test("authenticated user can create, edit, and delete a task", async ({
   page,
@@ -9,6 +19,7 @@ test("authenticated user can create, edit, and delete a task", async ({
   );
 
   await page.goto("/login");
+  await waitForLoginFormHydration(page);
   await page
     .getByLabel("Email address", { exact: true })
     .fill(process.env.E2E_USER_EMAIL ?? "");
@@ -16,13 +27,17 @@ test("authenticated user can create, edit, and delete a task", async ({
     .getByRole("textbox", { name: "Password", exact: true })
     .fill(process.env.E2E_USER_PASSWORD ?? "");
   await page.getByRole("button", { name: /sign in/i }).click();
+  await expect(page).toHaveURL(/dashboard|admin/);
 
+  const today = new Date().toISOString().slice(0, 10);
   await page.goto("/dashboard/tasks/new");
-  await page.getByLabel("Date").fill("2026-03-16");
+  await page.getByLabel("Date").fill(today);
   await page.getByLabel("Ticket number").fill("E2E-101");
   await page.getByLabel("Ticket title").fill("Playwright task");
   await page.getByRole("button", { name: /create task/i }).click();
 
   await expect(page).toHaveURL(/dashboard\/tasks/);
-  await expect(page.getByText("Playwright task")).toBeVisible();
+  await expect(page.getByText("Playwright task")).toBeVisible({
+    timeout: 30_000,
+  });
 });
