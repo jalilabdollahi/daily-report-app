@@ -12,7 +12,9 @@ test("user can register, log in, and log out", async ({ page }) => {
     .fill("Password123!");
   await page.getByRole("button", { name: /create account/i }).click();
 
-  await page.goto("/login");
+  // Wait for successful registration redirect before proceeding
+  await expect(page).toHaveURL(/login/, { timeout: 30_000 });
+
   await page.getByLabel("Email address", { exact: true }).fill(email);
   await page.getByRole("textbox", { name: "Password", exact: true }).fill(
     "Password123!",

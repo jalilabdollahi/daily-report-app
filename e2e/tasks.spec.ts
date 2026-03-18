@@ -26,7 +26,7 @@ test("authenticated user can create, edit, and delete a task", async ({
   await page.getByRole("button", { name: /create task/i }).click();
 
   await expect(page).toHaveURL(/dashboard\/tasks/);
-  await expect(page.getByText("Playwright task")).toBeVisible({
+  await expect(page.getByText("Playwright task").first()).toBeVisible({
     timeout: 30_000,
   });
 });
