@@ -1,0 +1,307 @@
+Act as a senior full-stack software engineer, product designer, and solution architect.
+
+I want you to design and implement a complete web application for writing and managing my daily work reports.
+
+## Project Goal
+
+I do many daily technical and operational tasks, but I often forget to write them down. I need a clean, user-friendly web app where I can quickly record my daily tasks and reports. Most tasks are related to tickets, so each entry should let me store a ticket number, ticket title, ticket description, story point, and my written daily report.
+
+Build a modern, production-ready web app with clean architecture, good UX, and scalable code.
+
+---
+
+## Core Features
+
+### 1. User Authentication
+- Login / Logout
+- Password recovery / reset
+- Secure session handling
+- Rate limiting on auth endpoints
+
+### 2. User Profile & Settings
+- Settings page to update name, email, and password
+- Avatar or profile picture upload
+- Theme preference (dark/light mode toggle persisted per user)
+
+### 3. Task & Daily Report Management
+- Create, edit, delete daily task entries
+- Each task/report entry includes:
+  - Ticket number
+  - Ticket title
+  - Ticket description
+  - Story point
+  - Daily report / notes (with rich text editor)
+  - Date
+  - Tags or status labels (e.g., In Progress, Done, Blocked)
+  - Optional file/image attachments (screenshots, logs, configs)
+  - Created at / updated at timestamps
+- A user can add multiple tasks for the same day
+- Bulk operations: bulk delete, bulk status change, select all / deselect
+- "Duplicate yesterday's tasks" shortcut
+- Audit trail / version history: track edits to a report entry over time
+
+### 4. Admin Dashboard
+- **Role-based access control:** Admin and regular user roles with distinct permissions
+- **User management:**
+  - View all registered users in a searchable, sortable table
+  - Edit user details (name, email, role)
+  - Deactivate or delete user accounts
+  - Reset a user's password
+  - View individual user activity and report history
+- **System-wide statistics:**
+  - Total users, total tasks, active users (daily/weekly/monthly)
+  - New registrations over time (chart)
+  - Tasks created per day/week/month (chart)
+  - Top users by task count or story points
+  - Storage usage overview
+- **Activity logs:**
+  - Track login/logout events
+  - Track task create/edit/delete actions
+  - Filterable by user, action type, and date range
+  - Exportable audit log
+- **Content moderation:**
+  - View, flag, or delete any user's reports
+  - Search across all users' tasks and reports
+- **App configuration:**
+  - Toggle features on/off (e.g., reminders, file uploads, registration)
+  - Manage global allowed tags and status labels
+  - Set default values (e.g., default theme, default reminder time)
+  - Configure rate limits and security settings
+- **System health monitoring:**
+  - API response times and error rates
+  - Database connection status
+  - Background job status (e.g., email reminders)
+  - Recent error log viewer
+- **Announcements & notifications:**
+  - Send system-wide announcements or messages to all users
+  - Banner notifications on user dashboard
+  - Notification history
+- **Admin UI:**
+  - Modern, clean admin layout separate from the user-facing app
+  - Sidebar navigation with sections for each admin feature
+  - Data tables with search, sort, pagination, and bulk actions
+  - Charts and graphs for visual data representation (Recharts, Chart.js, or similar)
+  - Responsive design for desktop and tablet
+
+### 5. Search, Filtering & Sorting
+- Search tasks by title, description, or ticket number
+- Search should be fast, debounced (300ms), and intuitive
+- Filter by date, date range, tags, or status
+- Sort by date, story points, ticket number, or created at
+- Ascending / descending toggle
+
+### 6. Date-Based Organization
+- Group tasks by date for clear readability
+- Daily view, and optionally weekly/monthly grouped display
+- Easy to review what was done on a specific day
+- Timeline-style or card-based grouping for daily entries
+
+### 7. Main Dashboard / Home Page
+- Useful landing page after login
+- Project summary and stats:
+  - Total tasks logged
+  - Today's reports count
+  - Recent tasks list
+  - Story points logged this week/month
+  - Activity summary or simple charts (tasks per day/week)
+- Search bar at the top
+- Quick "Add Task" button (make it extremely easy to add a task in seconds)
+- "No tasks logged today" banner/nudge if the user hasn't logged anything
+- Short welcome section or project description
+
+### 8. Reminders & Nudges
+- Show a prominent "You haven't logged anything today" banner on dashboard
+- Optional daily browser notification or email reminder to log tasks
+- Configurable reminder time in user settings
+
+### 9. Export & Print
+- Export reports by date range (CSV, JSON, or PDF)
+- Print-friendly view: generate a clean printable daily/weekly summary
+
+### 10. Data Import
+- CSV or JSON import for existing report history
+
+---
+
+## User Experience & Interface
+
+- Very user-friendly, clean, modern, responsive design
+- Easy and fast data entry — forms should be simple, not overwhelming
+- Good typography and spacing
+- Mobile-friendly and desktop-friendly
+- Clear navigation and feedback states
+- Empty states, loading states, and validation messages
+- Cards, sections, or timeline-style grouping for daily entries
+- The app should feel like a personal productivity/reporting assistant
+- Pagination for large history
+
+### Accessibility
+- WCAG 2.1 AA compliance
+- Full keyboard navigation for all actions
+- Screen reader support
+- Proper focus management and ARIA labels
+
+### Keyboard Shortcuts
+- `Ctrl+N` / `Cmd+N` — New task
+- `Ctrl+K` / `Cmd+K` — Focus search
+- `Escape` — Close modals/dialogs
+
+---
+
+## Technical Expectations
+
+### Tech Stack (default to these unless you suggest better alternatives with reasoning)
+- **Frontend:** React / Next.js (App Router)
+- **Backend:** Next.js API routes
+- **Database:** PostgreSQL
+- **ORM:** Prisma
+- **Auth:** NextAuth.js or secure JWT-based auth
+- **Styling:** Tailwind CSS
+- **UI Components:** Modern accessible component library (Radix UI, shadcn/ui, or similar)
+- **State/Data Fetching:** React Query (TanStack Query) or SWR with stale-while-revalidate caching
+- **Rich Text Editor:** Tiptap or similar
+- **File Storage:** Local uploads or S3-compatible storage
+
+### Architecture & Code Quality
+- Maintainable and scalable architecture
+- Clean separation of concerns
+- Reusable components
+- Proper form validation (Zod + React Hook Form or similar)
+- Well-structured and searchable database schema
+- Database indexes on `date`, `user_id`, `ticket_number` for fast queries
+- Easy to extend later
+
+### Security
+- Secure authentication flow with proper session management
+- API rate limiting on auth and data endpoints
+- CSRF protection
+- Input sanitization against XSS
+- Content Security Policy headers
+- Proper HTTP security headers
+- Never expose sensitive data in client responses
+
+### Testing
+- Unit tests for all API routes and key utilities (Vitest or Jest)
+- Integration tests for auth flow and CRUD operations
+- E2E tests for critical user journeys: login, create/edit/delete task, search (Playwright or Cypress)
+- Target: meaningful coverage on all critical paths
+
+### Performance
+- Page load under 2 seconds on standard connections
+- Debounced search input (300ms)
+- Efficient database queries with proper indexing
+- Client-side caching via React Query / SWR
+- Lazy loading and code splitting where appropriate
+
+### Deployment & DevOps
+- Dockerized for easy local and cloud deployment
+- Target platform: Vercel (or Docker on any cloud provider)
+- Include `.env.example` with all required environment variables documented
+- Environment management: dev / staging / production
+- CI/CD pipeline (GitHub Actions):
+  - Lint, test, and build on every PR
+  - Automated deployment on merge to main
+- Database backup strategy and point-in-time recovery plan
+
+### API Documentation
+- Swagger / OpenAPI spec for all API routes
+- Or a clear API reference document
+
+### Browser Support
+- Modern evergreen browsers (latest 2 versions of Chrome, Firefox, Safari, Edge)
+
+---
+
+## Data Model
+
+Each daily report item:
+
+id              - UUID, primary key
+user_id         - Foreign key to users table
+date            - Date of the task
+ticket_number   - String
+ticket_title    - String
+ticket_description - Text
+story_point     - Integer or float
+daily_report    - Rich text (stored as HTML or JSON)
+tags            - Array of strings or relation to tags table
+status          - Enum (e.g., In Progress, Done, Blocked)
+attachments     - Relation to attachments/files table
+created_at      - Timestamp
+updated_at      - Timestamp
+
+Users table:
+
+id              - UUID, primary key
+name            - String
+email           - String, unique
+password_hash   - String
+role            - Enum (admin, user), default user
+avatar_url      - String, nullable
+theme           - Enum (light, dark, system)
+reminder_enabled - Boolean, default true
+reminder_time   - Time, default 17:00
+is_active       - Boolean, default true
+created_at      - Timestamp
+updated_at      - Timestamp
+
+Activity log table:
+
+id              - UUID, primary key
+user_id         - Foreign key to users table
+action          - Enum (login, logout, create_task, edit_task, delete_task, etc.)
+target_id       - UUID, nullable (ID of the affected resource)
+target_type     - String, nullable (e.g., task, user)
+metadata        - JSON, nullable (additional context)
+ip_address      - String, nullable
+created_at      - Timestamp
+
+Announcements table:
+
+id              - UUID, primary key
+admin_id        - Foreign key to users table
+title           - String
+message         - Text
+is_active       - Boolean, default true
+created_at      - Timestamp
+expires_at      - Timestamp, nullable
+
+---
+
+## Suggested Output Structure
+
+1. Product overview
+2. Complete features list
+3. Recommended tech stack with reasoning
+4. System architecture diagram/description
+5. Database schema (Prisma schema or SQL)
+6. API design (RESTful endpoints with request/response shapes)
+7. API documentation (OpenAPI spec or reference)
+8. UI/UX structure and pages (with wireframe descriptions)
+9. Folder/project structure
+10. Step-by-step implementation plan
+11. Full code for frontend and backend
+12. Testing setup and example tests
+13. Docker configuration
+14. CI/CD pipeline configuration (GitHub Actions)
+15. Instructions to run locally
+16. Suggestions for future improvements
+
+---
+
+## Nice-to-Have Features (implement if time allows)
+
+- Offline / PWA support — quick entry without internet, sync when back online
+- Dashboard charts or activity heatmap
+- Recurring task templates
+- Team/workspace support (multi-user with shared views)
+- Slack or webhook integration for daily report summaries
+- AI-assisted report writing (summarize tasks into a daily report paragraph)
+
+---
+
+## Final Notes
+
+- Make the final result feel professional, minimal, and highly practical for everyday use
+- Prioritize speed of data entry above all else — adding a task should take under 10 seconds
+- Generate a complete and practical solution with clear explanations, clean code, a polished UI, and a real-world project structure suitable for production development

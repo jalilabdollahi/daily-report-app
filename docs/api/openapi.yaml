@@ -1,0 +1,286 @@
+openapi: 3.0.3
+info:
+  title: Daily Report App API
+  version: 1.0.0
+  description: Core API surface for authentication, tasks, reminders, user settings, dashboard data, and admin operations.
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Auth
+  - name: Tasks
+  - name: User
+  - name: Dashboard
+  - name: Admin
+  - name: Reminders
+paths:
+  /api/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: User registered
+        '409':
+          description: Duplicate email
+  /api/auth/forgot-password:
+    post:
+      tags: [Auth]
+      summary: Request a password reset email/token
+      responses:
+        '200':
+          description: Reset request accepted
+  /api/auth/reset-password:
+    post:
+      tags: [Auth]
+      summary: Reset a password using a token
+      responses:
+        '200':
+          description: Password updated
+  /api/tasks:
+    get:
+      tags: [Tasks]
+      summary: List the authenticated user's tasks
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+        - in: query
+          name: limit
+          schema: { type: integer, default: 20 }
+        - in: query
+          name: search
+          schema: { type: string }
+        - in: query
+          name: date
+          schema: { type: string, format: date }
+        - in: query
+          name: startDate
+          schema: { type: string, format: date }
+        - in: query
+          name: endDate
+          schema: { type: string, format: date }
+        - in: query
+          name: status
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/TaskStatus'
+        - in: query
+          name: tags
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: Paginated task groups
+    post:
+      tags: [Tasks]
+      summary: Create a task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskRequest'
+      responses:
+        '201':
+          description: Task created
+  /api/tasks/{id}:
+    put:
+      tags: [Tasks]
+      summary: Update a task
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Task updated
+    delete:
+      tags: [Tasks]
+      summary: Soft-delete a task
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Task deleted
+  /api/tasks/export:
+    get:
+      tags: [Tasks]
+      summary: Export tasks as CSV, JSON, or PDF
+      parameters:
+        - in: query
+          name: format
+          required: true
+          schema:
+            type: string
+            enum: [csv, json, pdf]
+        - in: query
+          name: startDate
+          required: true
+          schema: { type: string, format: date }
+        - in: query
+          name: endDate
+          required: true
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: File download
+  /api/tasks/import:
+    post:
+      tags: [Tasks]
+      summary: Import tasks from CSV or JSON
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                mapping:
+                  type: string
+      responses:
+        '200':
+          description: Import summary
+  /api/tasks/import/template:
+    get:
+      tags: [Tasks]
+      summary: Download the CSV import template
+      responses:
+        '200':
+          description: Template download
+  /api/dashboard/stats:
+    get:
+      tags: [Dashboard]
+      summary: Fetch dashboard aggregates for the current user
+      responses:
+        '200':
+          description: Dashboard stats
+  /api/user/profile:
+    get:
+      tags: [User]
+      summary: Get the current user's profile
+      responses:
+        '200':
+          description: Profile payload
+    put:
+      tags: [User]
+      summary: Update the current user's profile
+      responses:
+        '200':
+          description: Profile updated
+  /api/user/password:
+    put:
+      tags: [User]
+      summary: Update the current user's password
+      responses:
+        '200':
+          description: Password updated
+  /api/user/preferences:
+    put:
+      tags: [User]
+      summary: Update theme and reminder preferences
+      responses:
+        '200':
+          description: Preferences updated
+  /api/cron/send-reminders:
+    post:
+      tags: [Reminders]
+      summary: Send reminder emails for due users without tasks logged today
+      responses:
+        '200':
+          description: Reminder execution summary
+  /api/admin/stats:
+    get:
+      tags: [Admin]
+      summary: Fetch admin dashboard statistics
+      responses:
+        '200':
+          description: Admin stats payload
+  /api/admin/users:
+    get:
+      tags: [Admin]
+      summary: List users for admin management
+      responses:
+        '200':
+          description: Paginated user list
+  /api/admin/activity:
+    get:
+      tags: [Admin]
+      summary: List audit log entries
+      responses:
+        '200':
+          description: Paginated activity log
+  /api/admin/announcements:
+    get:
+      tags: [Admin]
+      summary: List announcements
+      responses:
+        '200':
+          description: Announcements payload
+    post:
+      tags: [Admin]
+      summary: Create an announcement
+      responses:
+        '201':
+          description: Announcement created
+components:
+  schemas:
+    TaskStatus:
+      type: string
+      enum:
+        - TODO
+        - IN_PROGRESS
+        - DONE
+        - BLOCKED
+    RegisterRequest:
+      type: object
+      required: [name, email, password, confirmPassword]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        confirmPassword:
+          type: string
+    TaskRequest:
+      type: object
+      required: [date, ticketNumber, ticketTitle]
+      properties:
+        date:
+          type: string
+          format: date
+        ticketNumber:
+          type: string
+        ticketTitle:
+          type: string
+        ticketDescription:
+          type: string
+        storyPoint:
+          type: number
+          nullable: true
+        dailyReport:
+          type: string
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        tags:
+          type: array
+          items:
+            type: string

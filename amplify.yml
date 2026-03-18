@@ -1,0 +1,19 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - npm ci
+        - if [ -n "$APP_SSM_PARAMETER_PATH" ]; then node scripts/export-ssm-env.mjs "$APP_SSM_PARAMETER_PATH" > .env.production.local; fi
+        - npx prisma generate
+    build:
+      commands:
+        - npm run build
+  artifacts:
+    baseDirectory: .next
+    files:
+      - "**/*"
+  cache:
+    paths:
+      - node_modules/**/*
+      - .next/cache/**/*

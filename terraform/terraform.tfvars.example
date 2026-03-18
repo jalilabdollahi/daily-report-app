@@ -1,0 +1,23 @@
+aws_region   = "us-east-1"
+environment  = "production"
+project_name = "daily-report-app"
+
+app_url = "https://dailyreports.example.com"
+
+# Amplify Hosting cannot reach a private RDS instance, so this stack defaults
+# to a public database. Tighten this list only if your runtime egress is known.
+db_allowed_cidr_blocks = ["0.0.0.0/0"]
+
+db_instance_class  = "db.t4g.micro"
+deletion_protection = true
+skip_final_snapshot = false
+
+s3_upload_prefix = "production"
+
+production_admin_email = "admin@example.com"
+
+smtp_host = "smtp.example.com"
+smtp_port = 587
+smtp_user = "smtp-user"
+smtp_pass = "replace-me"
+smtp_from = "noreply@dailyreports.app"
