@@ -51,7 +51,13 @@ vi.mock("@/lib/db", () => ({
 describe("POST /api/auth/register", () => {
   it("returns 409 for duplicate email addresses", async () => {
     const { db } = await import("@/lib/db");
-    vi.mocked(db.user.findUnique).mockResolvedValueOnce({ id: "existing-user" });
+    const mockedDb = db as unknown as {
+      user: {
+        findUnique: ReturnType<typeof vi.fn>;
+        create: ReturnType<typeof vi.fn>;
+      };
+    };
+    mockedDb.user.findUnique.mockResolvedValueOnce({ id: "existing-user" });
 
     const response = await POST(
       createRequest({
@@ -67,8 +73,14 @@ describe("POST /api/auth/register", () => {
 
   it("creates a user for valid registration input", async () => {
     const { db } = await import("@/lib/db");
-    vi.mocked(db.user.findUnique).mockResolvedValueOnce(null);
-    vi.mocked(db.user.create).mockResolvedValueOnce({
+    const mockedDb = db as unknown as {
+      user: {
+        findUnique: ReturnType<typeof vi.fn>;
+        create: ReturnType<typeof vi.fn>;
+      };
+    };
+    mockedDb.user.findUnique.mockResolvedValueOnce(null);
+    mockedDb.user.create.mockResolvedValueOnce({
       id: "user-1",
       email: "new@example.com",
     });
