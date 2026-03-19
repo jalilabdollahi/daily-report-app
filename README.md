@@ -87,6 +87,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up
 - `npm run backup:db`
 - `npm run restore:db`
 
+
 ## Default Seed Credentials
 
 Development seed users from `prisma/seed.ts`:
