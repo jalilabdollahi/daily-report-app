@@ -247,10 +247,45 @@ login_ghcr_if_configured() {
 }
 
 deploy_app() {
-  echo "Pulling and starting application stack..."
   cd "${REPO_ROOT}"
-  docker compose pull
+
+  echo "Pulling application images..."
+  if ! docker compose pull 2>&1; then
+    echo
+    echo "WARNING: docker compose pull failed."
+    echo "The image may not exist on GHCR or requires authentication."
+    echo
+
+    if [[ -f "${REPO_ROOT}/Dockerfile" ]]; then
+      echo "Building the image locally from Dockerfile..."
+      docker compose build
+    else
+      echo "ERROR: No Dockerfile found and pull failed. Cannot continue."
+      echo "Either push an image to GHCR first, or provide GHCR_TOKEN."
+      exit 1
+    fi
+  fi
+
+  echo "Starting application stack..."
   docker compose up -d
+
+  echo "Waiting for the app container to become healthy..."
+  local retries=0
+  local max_retries=30
+  while [[ ${retries} -lt ${max_retries} ]]; do
+    if curl -sf http://127.0.0.1:3000/api/health >/dev/null 2>&1; then
+      echo "Application is healthy!"
+      return
+    fi
+    retries=$((retries + 1))
+    sleep 5
+  done
+
+  echo
+  echo "WARNING: App did not pass health check after $((max_retries * 5))s."
+  echo "Check container logs:"
+  echo "  docker compose logs app"
+  echo "  docker compose logs db"
 }
 
 show_summary() {
