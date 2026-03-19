@@ -232,6 +232,7 @@ configure_nginx() {
   cp "${NGINX_SOURCE}" "${NGINX_TARGET}"
   ln -sf "${NGINX_TARGET}" /etc/nginx/sites-enabled/daily-report-app
   rm -f /etc/nginx/sites-enabled/default
+  rm -f /etc/nginx/conf.d/default.conf
   nginx -t
   systemctl reload nginx
 }
