@@ -1,31 +1,35 @@
 name: Deploy
 
 on:
-  push:
+  workflow_run:
+    workflows: ["Container Image"]
     branches:
       - main
+    types:
+      - completed
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # Only deploy when the image build succeeded
+    if: github.event.workflow_run.conclusion == 'success'
+    env:
+      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || '/root/daily-report-app' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Deploy to Hetzner via SSH
+        uses: appleboy/ssh-action@v1.2.0
         with:
-          node-version: 20
-          cache: npm
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run typecheck
-      - run: npm run test
-      - run: npm run build
-      - name: Apply production migrations
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: npx prisma migrate deploy
-      - name: Trigger Vercel deployment
-        if: ${{ secrets.VERCEL_DEPLOY_HOOK_URL != '' }}
-        run: curl -X POST "${{ secrets.VERCEL_DEPLOY_HOOK_URL }}"
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ${{ env.DEPLOY_PATH }}
+            docker compose pull
+            docker compose up -d --remove-orphans
+
       - name: Post-deployment health check
         if: ${{ secrets.APP_HEALTHCHECK_URL != '' }}
-        run: curl --fail "${{ secrets.APP_HEALTHCHECK_URL }}"
+        run: |
+          sleep 20
+          curl --fail --max-time 30 --retry 5 --retry-delay 5 \
+            "${{ secrets.APP_HEALTHCHECK_URL }}"
