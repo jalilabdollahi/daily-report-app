@@ -221,9 +221,9 @@ configure_services_and_firewall() {
   fi
 
   echo "Configuring firewall..."
-  ufw --force allow "${SSH_PORT}"/tcp
-  ufw --force allow 80/tcp
-  ufw --force allow 443/tcp
+  ufw allow "${SSH_PORT}"/tcp
+  ufw allow 80/tcp
+  ufw allow 443/tcp
   ufw --force enable
 }
 
