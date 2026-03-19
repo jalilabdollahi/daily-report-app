@@ -130,8 +130,8 @@ normalize_env_file() {
   replace_or_append_env "DATABASE_URL" "postgresql://postgres:postgres@db:5432/daily_reports" "${ENV_FILE}"
   replace_or_append_env "AUTH_SECRET" "${auth_secret}" "${ENV_FILE}"
   replace_or_append_env "NEXTAUTH_SECRET" "${auth_secret}" "${ENV_FILE}"
-  replace_or_append_env "AUTH_URL" "http://mydailyreport.xyz" "${ENV_FILE}"
-  replace_or_append_env "NEXTAUTH_URL" "http://mydailyreport.xyz" "${ENV_FILE}"
+  replace_or_append_env "AUTH_URL" "https://mydailyreport.xyz" "${ENV_FILE}"
+  replace_or_append_env "NEXTAUTH_URL" "https://mydailyreport.xyz" "${ENV_FILE}"
   replace_or_append_env "AUTH_SESSION_MAX_AGE" "604800" "${ENV_FILE}"
   replace_or_append_env "PASSWORD_RESET_TOKEN_TTL_MINUTES" "60" "${ENV_FILE}"
   replace_or_append_env "UPLOAD_PROVIDER" "local" "${ENV_FILE}"
@@ -153,6 +153,7 @@ install_base_packages() {
   echo "Installing base packages..."
   apt-get install -y \
     ca-certificates \
+    certbot \
     curl \
     fail2ban \
     git \
@@ -160,6 +161,7 @@ install_base_packages() {
     lsb-release \
     nginx \
     postgresql-client \
+    python3-certbot-nginx \
     software-properties-common \
     ufw
 }
@@ -229,12 +231,69 @@ configure_services_and_firewall() {
 
 configure_nginx() {
   echo "Installing Nginx reverse-proxy config..."
-  cp "${NGINX_SOURCE}" "${NGINX_TARGET}"
+
+  # Install a plain HTTP-only config first so certbot can serve ACME challenges
+  cat >"${NGINX_TARGET}" <<'NGINX_HTTP_ONLY'
+server {
+    listen 80;
+    listen [::]:80;
+    server_name mydailyreport.xyz www.mydailyreport.xyz;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 60s;
+    }
+}
+NGINX_HTTP_ONLY
+
   ln -sf "${NGINX_TARGET}" /etc/nginx/sites-enabled/daily-report-app
   rm -f /etc/nginx/sites-enabled/default
   rm -f /etc/nginx/conf.d/default.conf
   nginx -t
   systemctl reload nginx
+}
+
+install_certbot_certificate() {
+  local domain="mydailyreport.xyz"
+  local email="${PRODUCTION_ADMIN_EMAIL:-admin@mydailyreport.xyz}"
+  local cert_path="/etc/letsencrypt/live/${domain}/fullchain.pem"
+
+  if [[ -f "${cert_path}" ]]; then
+    echo "Certificate already exists for ${domain}, skipping certbot."
+  else
+    echo "Obtaining Let's Encrypt certificate for ${domain}..."
+    mkdir -p /var/www/certbot
+    certbot certonly --webroot \
+      --webroot-path /var/www/certbot \
+      --non-interactive \
+      --agree-tos \
+      --email "${email}" \
+      -d "${domain}" \
+      -d "www.${domain}" || {
+        echo "WARNING: certbot failed. Check that DNS is pointing to this server."
+        echo "HTTPS will not be configured. HTTP will continue to work."
+        return
+      }
+  fi
+
+  echo "Installing HTTPS nginx config..."
+  cp "${NGINX_SOURCE}" "${NGINX_TARGET}"
+  nginx -t && systemctl reload nginx
+
+  echo "Setting up certbot auto-renewal..."
+  systemctl enable --now certbot.timer 2>/dev/null || \
+    (crontab -l 2>/dev/null; echo "0 3 * * * certbot renew --quiet --post-hook 'systemctl reload nginx'") | crontab -
+
+  echo "Certificate installed. Site available at https://${domain}"
 }
 
 login_ghcr_if_configured() {
@@ -300,12 +359,12 @@ show_summary() {
   echo "- Repo root: ${REPO_ROOT}"
   echo "- Env file: ${ENV_FILE}"
   echo "- App image: ${app_image}"
-  echo "- Public URL: http://${server_ip}"
+  echo "- Public URL: https://mydailyreport.xyz (or http://${server_ip} if DNS not yet propagated)"
   echo
   echo "Useful checks:"
   echo "  docker ps"
   echo "  curl -i http://127.0.0.1:3000/api/health"
-  echo "  curl -i http://${server_ip}"
+  echo "  curl -i https://mydailyreport.xyz"
   echo
   echo "Generated credentials:"
   echo "  PRODUCTION_ADMIN_EMAIL=$(current_env_value "PRODUCTION_ADMIN_EMAIL" "${ENV_FILE}")"
@@ -331,6 +390,7 @@ main() {
   login_ghcr_if_configured
   configure_nginx
   deploy_app
+  install_certbot_certificate
   show_summary "${server_ip}"
 }
 
