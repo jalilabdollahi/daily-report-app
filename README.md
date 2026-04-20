@@ -80,11 +80,20 @@ This is more than a basic notes app. It is designed as an internal productivity 
 
 ## Quick Start
 
+Prerequisites:
+
+- Node.js 20 or newer is strongly recommended
+- Docker and Docker Compose
+- npm
+
+For a clean first local run:
+
 ```bash
 git clone <your-repo-url>
 cd daily-report-app
 npm install
 cp .env.example .env
+docker compose -f docker-compose.dev.yml up -d db
 npm run db:generate
 npm run db:push
 npm run db:seed
@@ -93,11 +102,75 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+If `npm run db:push` fails, PostgreSQL is usually not running yet. This project expects a local Postgres database from [`docker-compose.dev.yml`](./docker-compose.dev.yml).
+
+If `npm run db:seed` fails after copying `node_modules` from another machine or OS, run `npm install` again on the current machine before retrying. This fixes platform-specific native packages such as `esbuild`.
+
+---
+
+## First Local Run
+
+Recommended first-time setup:
+
+```bash
+cp .env.example .env
+docker compose -f docker-compose.dev.yml up -d db
+pg_isready -h localhost -p 5432 -U postgres -d daily_reports
+npm install
+npm run db:generate
+npm run db:push
+npm run db:seed
+npm run dev
+```
+
+When everything is working, open `http://localhost:3000`.
+
+Expected development accounts:
+
+- Admin: `admin@example.com` / `admin123`
+- User: `user@example.com` / `user123`
+
+---
+
+## Run In Background
+
+To run the app locally in the background on port `3000`:
+
+```bash
+nohup npm run dev -- --hostname 0.0.0.0 --port 3000 > .dev.log 2>&1 &
+```
+
+To follow the log output:
+
+```bash
+tail -f .dev.log
+```
+
+## Stop Background App
+
+If the app is already running in the background on port `3000`, stop it with:
+
+```bash
+lsof -tiTCP:3000 -sTCP:LISTEN | xargs kill
+```
+
+To check which process is using port `3000` before stopping it:
+
+```bash
+lsof -iTCP:3000 -sTCP:LISTEN
+```
+
+To stop the local Postgres container too:
+
+```bash
+docker compose -f docker-compose.dev.yml stop db
+```
+
 ---
 
 ## Environment Variables
 
-Start from [`.env.example`](/home/fatemeh/Desktop/AI-Projects/daily-report-app/.env.example).
+Start from [`.env.example`](./.env.example).
 
 Important variables:
 
@@ -126,7 +199,7 @@ Important variables:
 
 ## Development Seed Accounts
 
-Local development seed users from [`prisma/seed.ts`](/home/fatemeh/Desktop/AI-Projects/daily-report-app/prisma/seed.ts):
+Local development seed users from [`prisma/seed.ts`](./prisma/seed.ts):
 
 - Admin: `admin@example.com` / `admin123`
 - User: `user@example.com` / `user123`
@@ -297,12 +370,12 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up
 
 ### Production notes
 
-- Use [`.env.production`](/home/fatemeh/Desktop/AI-Projects/daily-report-app/.env.production) as a deployment template
+- Use [`.env.production`](./.env.production) as a deployment template
 - Publish container images through the GitHub Actions workflow
 - Set `UPLOAD_PROVIDER=s3` in production for durable attachment storage
 - Export environment variables from SSM when deploying in AWS-backed environments
-- Use the [`terraform/`](/home/fatemeh/Desktop/AI-Projects/daily-report-app/terraform) directory for infrastructure provisioning
-- Schedule regular backups with [`scripts/backup.sh`](/home/fatemeh/Desktop/AI-Projects/daily-report-app/scripts/backup.sh)
+- Use the [`terraform/`](./terraform) directory for infrastructure provisioning
+- Schedule regular backups with [`scripts/backup.sh`](./scripts/backup.sh)
 
 ---
 
@@ -310,11 +383,11 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up
 
 Additional project docs:
 
-- [ARCHITECTURE.md](/home/fatemeh/Desktop/AI-Projects/daily-report-app/ARCHITECTURE.md)
-- [CONTRIBUTING.md](/home/fatemeh/Desktop/AI-Projects/daily-report-app/CONTRIBUTING.md)
-- [docs/pre-deployment-checklist.md](/home/fatemeh/Desktop/AI-Projects/daily-report-app/docs/pre-deployment-checklist.md)
-- [docs/api/openapi.yaml](/home/fatemeh/Desktop/AI-Projects/daily-report-app/docs/api/openapi.yaml)
-- [terraform/README.md](/home/fatemeh/Desktop/AI-Projects/daily-report-app/terraform/README.md)
+- [ARCHITECTURE.md](./ARCHITECTURE.md)
+- [CONTRIBUTING.md](./CONTRIBUTING.md)
+- [docs/pre-deployment-checklist.md](./docs/pre-deployment-checklist.md)
+- [docs/api/openapi.yaml](./docs/api/openapi.yaml)
+- [terraform/README.md](./terraform/README.md)
 
 ---
 
