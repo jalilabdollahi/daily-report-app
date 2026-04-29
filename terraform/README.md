@@ -76,6 +76,6 @@ AWS_REGION=us-east-1 npm run env:ssm:export -- /daily-report-app/production
   through authenticated `/api/files/...` routes.
 - The generated IAM policy should be attached to the runtime identity that will
   access S3 and SSM.
-- [amplify.yml](/Users/JalilAbdollahi/Desktop/AI-Projects/daily-report-app/amplify.yml)
+- [amplify.yml](../amplify.yml)
   can optionally read values from SSM into `.env.production.local` during the
   build when `APP_SSM_PARAMETER_PATH` and AWS credentials are available.
